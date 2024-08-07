@@ -6,13 +6,15 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 clients = pd.read_excel('emails.xlsx')
-name = clients["name"]
 
 email_providers = {
         "gmail": {"host": "smtp.gmail.com", "port": 587},
         "outlook": {"host": "smtp.office365.com", "port": 587},
         "yahoo": {"host": "smtp.mail.yahoo.com", "port": 587},
     }
+
+def insert_client_name(text_body, user):
+    return text_body.replace("{user}", user)
 
 def send_emails(login, password, subject, text_body):
 
@@ -39,6 +41,7 @@ def send_emails(login, password, subject, text_body):
     # Loop to read line per line and send
     for index, client in clients.iterrows():
         email = client["e-mail"]
+        user = client["name"]
         counter = None
         error = False
 
@@ -46,7 +49,7 @@ def send_emails(login, password, subject, text_body):
             msg = MIMEMultipart()
             msg["Subject"] = subject
             msg["From"] = login
-            body = text_body
+            body = insert_client_name(text_body, user)
 
             msg["To"] = email
             msg.attach(MIMEText(body))
@@ -63,14 +66,20 @@ def send_emails(login, password, subject, text_body):
     server.quit()
 
 #check the provider, login and text
-email_provider = str(input("E-mail provider: "))
-if email_provider not in email_providers:
-    print(f"Unsupported email provider: {email_provider}")
+while True:
+    email_provider = str(input("E-mail provider: "))
+    if email_provider not in email_providers:
+        print(f"Unsupported email provider: {email_provider}")
+        pass
+
+    else:
+        break
 
 login = str(input("login: "))
 password = str(input("password: "))
 
 while True:
+    print("*use {user} to insert the client name*")
     subject = str(input("Type your subject: "))
     text_body = str(input("Body: "))
 
